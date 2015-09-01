@@ -14,7 +14,7 @@
 namespace node_mbgl {
 
 mbgl::util::RunLoop& NodeRunLoop() {
-    static mbgl::util::RunLoop nodeRunLoop(uv_default_loop());
+    static mbgl::util::RunLoop nodeRunLoop(mbgl::util::RunLoop::Type::Default);
     return nodeRunLoop;
 }
 
