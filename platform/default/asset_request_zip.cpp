@@ -5,6 +5,7 @@
 #include <mbgl/platform/log.hpp>
 #include <mbgl/util/util.hpp>
 #include <mbgl/util/uv.hpp>
+#include <mbgl/util/run_loop.hpp>
 
 #include <uv.h>
 #include "uv_zip.h"
@@ -17,12 +18,11 @@ namespace mbgl {
 
 class AssetZipContext : public AssetContextBase {
 public:
-    explicit AssetZipContext(uv_loop_t *loop);
+    explicit AssetZipContext();
     ~AssetZipContext();
 
     RequestBase* createRequest(const Resource& resource,
                                RequestBase::Callback callback,
-                               uv_loop_t* loop,
                                const std::string& assetRoot) final;
 
     uv_zip_t *getHandle(const std::string &path);
@@ -33,7 +33,7 @@ public:
     uv_loop_t *loop;
 };
 
-AssetZipContext::AssetZipContext(uv_loop_t *loop_) : loop(loop_) {
+AssetZipContext::AssetZipContext() : loop(static_cast<uv_loop_t*>(util::RunLoop::getLoopHandle())) {
 }
 
 uv_zip_t *AssetZipContext::getHandle(const std::string &path) {
@@ -95,7 +95,6 @@ private:
 
 RequestBase* AssetZipContext::createRequest(const Resource& resource,
                                             RequestBase::Callback callback,
-                                            uv_loop_t*,
                                             const std::string& assetRoot) {
     return new AssetRequest(*this, resource, callback, assetRoot);
 }
@@ -259,8 +258,8 @@ void AssetRequest::cancel() {
     cancelled = true;
 }
 
-std::unique_ptr<AssetContextBase> AssetContextBase::createContext(uv_loop_t* loop) {
-    return std::make_unique<AssetZipContext>(loop);
+std::unique_ptr<AssetContextBase> AssetContextBase::createContext() {
+    return std::make_unique<AssetZipContext>();
 }
 
 }
