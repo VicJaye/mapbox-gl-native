@@ -1,7 +1,5 @@
 #include "storage.hpp"
 
-#include <uv.h>
-
 #include <mbgl/storage/default_file_source.hpp>
 #include <mbgl/util/run_loop.hpp>
 
@@ -14,7 +12,7 @@ TEST_F(Storage, HTTPCoalescing) {
     using namespace mbgl;
 
     DefaultFileSource fs(nullptr);
-    util::RunLoop loop(uv_default_loop());
+    util::RunLoop loop;
 
     static const Response *reference = nullptr;
 
@@ -51,7 +49,7 @@ TEST_F(Storage, HTTPCoalescing) {
         });
     }
 
-    uv_run(uv_default_loop(), UV_RUN_DEFAULT);
+    loop.run();
 }
 
 TEST_F(Storage, HTTPMultiple) {
@@ -60,7 +58,7 @@ TEST_F(Storage, HTTPMultiple) {
     using namespace mbgl;
 
     DefaultFileSource fs(nullptr);
-    util::RunLoop loop(uv_default_loop());
+    util::RunLoop loop;
 
     const Resource resource { Resource::Unknown, "http://127.0.0.1:3000/test?expires=2147483647" };
     std::unique_ptr<FileRequest> req1;
@@ -95,7 +93,7 @@ TEST_F(Storage, HTTPMultiple) {
         });
     });
 
-    uv_run(uv_default_loop(), UV_RUN_DEFAULT);
+    loop.run();
 }
 
 // Tests that we get stale responses from previous requests when requesting the same thing again.
@@ -105,7 +103,7 @@ TEST_F(Storage, HTTPStale) {
     using namespace mbgl;
 
     DefaultFileSource fs(nullptr);
-    util::RunLoop loop(uv_default_loop());
+    util::RunLoop loop;
 
     int updates = 0;
     int stale = 0;
@@ -152,7 +150,7 @@ TEST_F(Storage, HTTPStale) {
         });
     });
 
-    uv_run(uv_default_loop(), UV_RUN_DEFAULT);
+    loop.run();
 
     EXPECT_EQ(1, stale);
     EXPECT_EQ(1, updates);

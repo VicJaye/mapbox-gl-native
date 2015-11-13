@@ -1,10 +1,9 @@
 #include "storage.hpp"
 
-#include <uv.h>
-
 #include <mbgl/storage/default_file_source.hpp>
 #include <mbgl/util/exception.hpp>
 #include <mbgl/util/run_loop.hpp>
+#include <mbgl/util/thread_context.hpp>
 
 #include <future>
 
@@ -14,14 +13,12 @@ TEST_F(Storage, HTTPTest) {
     using namespace mbgl;
 
     DefaultFileSource fs(nullptr);
-    util::RunLoop loop(uv_default_loop());
-
-    const auto mainThread = uv_thread_self();
+    util::RunLoop loop;
 
     std::unique_ptr<FileRequest> req1 = fs.request({ Resource::Unknown, "http://127.0.0.1:3000/test" },
                [&](Response res) {
         req1.reset();
-        EXPECT_EQ(uv_thread_self(), mainThread);
+        EXPECT_TRUE(util::ThreadContext::currentlyOn(util::ThreadType::Main));
         EXPECT_EQ(nullptr, res.error);
         EXPECT_EQ(false, res.stale);
         ASSERT_TRUE(res.data.get());
@@ -33,7 +30,7 @@ TEST_F(Storage, HTTPTest) {
         HTTPTest.finish();
     });
 
-    uv_run(uv_default_loop(), UV_RUN_DEFAULT);
+    loop.run();
 }
 
 TEST_F(Storage, HTTP404) {
@@ -42,14 +39,12 @@ TEST_F(Storage, HTTP404) {
     using namespace mbgl;
 
     DefaultFileSource fs(nullptr);
-    util::RunLoop loop(uv_default_loop());
-
-    const auto mainThread = uv_thread_self();
+    util::RunLoop loop;
 
     std::unique_ptr<FileRequest> req2 = fs.request({ Resource::Unknown, "http://127.0.0.1:3000/doesnotexist" },
                [&](Response res) {
         req2.reset();
-        EXPECT_EQ(uv_thread_self(), mainThread);
+        EXPECT_TRUE(util::ThreadContext::currentlyOn(util::ThreadType::Main));
         ASSERT_NE(nullptr, res.error);
         EXPECT_EQ(Response::Error::Reason::NotFound, res.error->reason);
         EXPECT_EQ(false, res.stale);
@@ -63,7 +58,7 @@ TEST_F(Storage, HTTP404) {
         HTTP404.finish();
     });
 
-    uv_run(uv_default_loop(), UV_RUN_DEFAULT);
+    loop.run();
 }
 
 TEST_F(Storage, HTTP500) {
@@ -72,14 +67,12 @@ TEST_F(Storage, HTTP500) {
     using namespace mbgl;
 
     DefaultFileSource fs(nullptr);
-    util::RunLoop loop(uv_default_loop());
-
-    const auto mainThread = uv_thread_self();
+    util::RunLoop loop;
 
     std::unique_ptr<FileRequest> req3 = fs.request({ Resource::Unknown, "http://127.0.0.1:3000/permanent-error" },
                [&](Response res) {
         req3.reset();
-        EXPECT_EQ(uv_thread_self(), mainThread);
+        EXPECT_TRUE(util::ThreadContext::currentlyOn(util::ThreadType::Main));
         ASSERT_NE(nullptr, res.error);
         EXPECT_EQ(Response::Error::Reason::Server, res.error->reason);
         EXPECT_EQ(false, res.stale);
@@ -93,7 +86,7 @@ TEST_F(Storage, HTTP500) {
         HTTP500.finish();
     });
 
-    uv_run(uv_default_loop(), UV_RUN_DEFAULT);
+    loop.run();
 }
 
 TEST_F(Storage, HTTPNoCallback) {
@@ -102,7 +95,7 @@ TEST_F(Storage, HTTPNoCallback) {
     using namespace mbgl;
 
     DefaultFileSource fs(nullptr);
-    util::RunLoop loop(uv_default_loop());
+    util::RunLoop loop;
 
     try {
         fs.request({ Resource::Unknown, "http://127.0.0.1:3000/test" },

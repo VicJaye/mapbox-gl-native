@@ -1,7 +1,5 @@
 #include "storage.hpp"
 
-#include <uv.h>
-
 #include <mbgl/storage/default_file_source.hpp>
 #include <mbgl/storage/sqlite_cache.hpp>
 #include <mbgl/util/run_loop.hpp>
@@ -13,7 +11,7 @@ TEST_F(Storage, CacheResponse) {
 
     SQLiteCache cache(":memory:");
     DefaultFileSource fs(&cache);
-    util::RunLoop loop(uv_default_loop());
+    util::RunLoop loop;
 
     const Resource resource { Resource::Unknown, "http://127.0.0.1:3000/cache" };
     Response response;
@@ -49,5 +47,5 @@ TEST_F(Storage, CacheResponse) {
         });
     });
 
-    uv_run(uv_default_loop(), UV_RUN_DEFAULT);
+    loop.run();
 }

@@ -1,7 +1,5 @@
 #include "storage.hpp"
 
-#include <uv.h>
-
 #include <mbgl/storage/default_file_source.hpp>
 #include <mbgl/storage/network_status.hpp>
 #include <mbgl/util/run_loop.hpp>
@@ -14,7 +12,7 @@ TEST_F(Storage, HTTPCancel) {
     using namespace mbgl;
 
     DefaultFileSource fs(nullptr);
-    util::RunLoop loop(uv_default_loop());
+    util::RunLoop loop;
 
     auto req =
         fs.request({ Resource::Unknown, "http://127.0.0.1:3000/test" },
@@ -23,7 +21,7 @@ TEST_F(Storage, HTTPCancel) {
     req.reset();
     HTTPCancel.finish();
 
-    uv_run(uv_default_loop(), UV_RUN_ONCE);
+    loop.runOnce();
 }
 
 TEST_F(Storage, HTTPCancelMultiple) {
@@ -32,7 +30,7 @@ TEST_F(Storage, HTTPCancelMultiple) {
     using namespace mbgl;
 
     DefaultFileSource fs(nullptr);
-    util::RunLoop loop(uv_default_loop());
+    util::RunLoop loop;
 
     const Resource resource { Resource::Unknown, "http://127.0.0.1:3000/test" };
 
@@ -53,5 +51,5 @@ TEST_F(Storage, HTTPCancelMultiple) {
     });
     req2.reset();
 
-    uv_run(uv_default_loop(), UV_RUN_DEFAULT);
+    loop.run();
 }

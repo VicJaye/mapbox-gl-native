@@ -1,7 +1,5 @@
 #include "storage.hpp"
 
-#include <uv.h>
-
 #include <mbgl/storage/default_file_source.hpp>
 #include <mbgl/platform/platform.hpp>
 #include <mbgl/util/run_loop.hpp>
@@ -17,7 +15,7 @@ TEST_F(Storage, AssetEmptyFile) {
     DefaultFileSource fs(nullptr);
 #endif
 
-    util::RunLoop loop(uv_default_loop());
+    util::RunLoop loop;
 
     std::unique_ptr<FileRequest> req = fs.request({ Resource::Unknown, "asset://TEST_DATA/fixtures/storage/empty" }, [&](Response res) {
         req.reset();
@@ -32,7 +30,7 @@ TEST_F(Storage, AssetEmptyFile) {
         EmptyFile.finish();
     });
 
-    uv_run(uv_default_loop(), UV_RUN_DEFAULT);
+    loop.run();
 }
 
 TEST_F(Storage, AssetNonEmptyFile) {
@@ -46,7 +44,7 @@ TEST_F(Storage, AssetNonEmptyFile) {
     DefaultFileSource fs(nullptr);
 #endif
 
-    util::RunLoop loop(uv_default_loop());
+    util::RunLoop loop;
 
     std::unique_ptr<FileRequest> req = fs.request({ Resource::Unknown, "asset://TEST_DATA/fixtures/storage/nonempty" }, [&](Response res) {
         req.reset();
@@ -63,7 +61,7 @@ TEST_F(Storage, AssetNonEmptyFile) {
         NonEmptyFile.finish();
     });
 
-    uv_run(uv_default_loop(), UV_RUN_DEFAULT);
+    loop.run();
 }
 
 TEST_F(Storage, AssetNonExistentFile) {
@@ -77,7 +75,7 @@ TEST_F(Storage, AssetNonExistentFile) {
     DefaultFileSource fs(nullptr);
 #endif
 
-    util::RunLoop loop(uv_default_loop());
+    util::RunLoop loop;
 
     std::unique_ptr<FileRequest> req = fs.request({ Resource::Unknown, "asset://TEST_DATA/fixtures/storage/does_not_exist" }, [&](Response res) {
         req.reset();
@@ -97,5 +95,5 @@ TEST_F(Storage, AssetNonExistentFile) {
         NonExistentFile.finish();
     });
 
-    uv_run(uv_default_loop(), UV_RUN_DEFAULT);
+    loop.run();
 }

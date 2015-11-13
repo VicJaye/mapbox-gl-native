@@ -1,7 +1,5 @@
 #include "storage.hpp"
 
-#include <uv.h>
-
 #include <mbgl/storage/default_file_source.hpp>
 #include <mbgl/util/run_loop.hpp>
 
@@ -16,7 +14,7 @@ TEST_F(Storage, AssetReadDirectory) {
     DefaultFileSource fs(nullptr);
 #endif
 
-    util::RunLoop loop(uv_default_loop());
+    util::RunLoop loop;
 
     std::unique_ptr<FileRequest> req = fs.request({ Resource::Unknown, "asset://TEST_DATA/fixtures/storage" }, [&](Response res) {
         req.reset();
@@ -37,5 +35,5 @@ TEST_F(Storage, AssetReadDirectory) {
         ReadDirectory.finish();
     });
 
-    uv_run(uv_default_loop(), UV_RUN_DEFAULT);
+    loop.run();
 }
