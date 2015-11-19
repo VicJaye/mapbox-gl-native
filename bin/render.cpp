@@ -2,10 +2,10 @@
 #include <mbgl/map/still_image.hpp>
 #include <mbgl/util/image.hpp>
 #include <mbgl/util/io.hpp>
+#include <mbgl/util/run_loop.hpp>
 
 #include <mbgl/platform/default/headless_view.hpp>
 #include <mbgl/platform/default/headless_display.hpp>
-#include <mbgl/platform/log.hpp>
 #include <mbgl/storage/default_file_source.hpp>
 #include <mbgl/storage/sqlite_cache.hpp>
 
@@ -18,17 +18,8 @@
 
 namespace po = boost::program_options;
 
-#include <uv.h>
-
-#include <cassert>
 #include <cstdlib>
 #include <iostream>
-
-#if UV_VERSION_MAJOR == 0 && UV_VERSION_MINOR <= 10
-#define UV_ASYNC_PARAMS(handle) uv_async_t *handle, int
-#else
-#define UV_ASYNC_PARAMS(handle) uv_async_t *handle
-#endif
 
 int main(int argc, char *argv[]) {
     std::string style_path;
@@ -74,8 +65,9 @@ int main(int argc, char *argv[]) {
 
     using namespace mbgl;
 
-    mbgl::SQLiteCache cache(cache_file);
-    mbgl::DefaultFileSource fileSource(&cache);
+    util::RunLoop loop;
+    SQLiteCache cache(cache_file);
+    DefaultFileSource fileSource(&cache);
 
     // Try to load the token from the environment.
     if (!token.size()) {
@@ -103,18 +95,8 @@ int main(int argc, char *argv[]) {
         map.setDebug(debug);
     }
 
-    uv_async_t *async = new uv_async_t;
-    uv_async_init(uv_default_loop(), async, [](UV_ASYNC_PARAMS(as)) {
-        std::unique_ptr<const StillImage> image(reinterpret_cast<const StillImage *>(as->data));
-        uv_close(reinterpret_cast<uv_handle_t *>(as), [](uv_handle_t *handle) {
-            delete reinterpret_cast<uv_async_t *>(handle);
-        });
-
-        const std::string png = util::compress_png(image->width, image->height, image->pixels.get());
-        util::write_file(output, png);
-    });
-
-    map.renderStill([async](std::exception_ptr error, std::unique_ptr<const StillImage> image) {
+    std::unique_ptr<const StillImage> image;
+    map.renderStill([&](std::exception_ptr error, std::unique_ptr<const StillImage> image_) {
         try {
             if (error) {
                 std::rethrow_exception(error);
@@ -124,10 +106,14 @@ int main(int argc, char *argv[]) {
             exit(1);
         }
 
-        async->data = const_cast<StillImage *>(image.release());
-        uv_async_send(async);
+        image = std::move(image_);
+        loop.stop();
     });
 
-    // This loop will terminate once the async was fired.
-    uv_run(uv_default_loop(), UV_RUN_DEFAULT);
+    loop.run();
+
+    const std::string png = util::compress_png(image->width, image->height, image->pixels.get());
+    util::write_file(output, png);
+
+    return 0;
 }
