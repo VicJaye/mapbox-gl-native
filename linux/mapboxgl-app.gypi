@@ -39,6 +39,10 @@
         ],
       },
 
+      'include_dirs': [
+        '../src',
+      ],
+
       'conditions': [
         ['OS == "mac"', {
           'libraries': [ '<@(libraries)' ],

@@ -49,6 +49,10 @@
         '<@(libraries)',
       ],
 
+      'include_dirs': [
+        '../src',
+      ],
+
       'xcode_settings': {
         'SDKROOT': 'macosx',
         'SUPPORTED_PLATFORMS':'macosx',
