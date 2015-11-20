@@ -5,6 +5,7 @@
 #include <mbgl/map/update.hpp>
 #include <mbgl/map/transform_state.hpp>
 #include <mbgl/map/map.hpp>
+#include <mbgl/map/map_data.hpp>
 #include <mbgl/style/style.hpp>
 #include <mbgl/util/gl_object_store.hpp>
 #include <mbgl/util/ptr.hpp>
@@ -30,8 +31,10 @@ struct FrameData {
 
 class MapContext : public Style::Observer {
 public:
-    MapContext(View&, FileSource&, MapData&);
+    MapContext(View&, FileSource&, MapMode, GLContextMode, const float pixelRatio);
     ~MapContext();
+
+    MapData& getData() { return data; }
 
     void pause();
 
@@ -72,6 +75,7 @@ private:
     void loadStyleJSON(const std::string& json, const std::string& base);
 
     View& view;
+    std::unique_ptr<MapData> dataPtr;
     MapData& data;
 
     util::GLObjectStore glObjectStore;
