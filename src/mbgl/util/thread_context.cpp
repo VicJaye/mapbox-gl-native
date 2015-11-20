@@ -23,7 +23,7 @@ ThreadContext::ThreadContext(const std::string& name_, ThreadType type_, ThreadP
       priority(priority_) {
 }
 
-uv::tls<ThreadContext> ThreadContext::current;
+tls<ThreadContext> ThreadContext::current;
 
 // Will auto register the main thread context
 // at startup. Must be instantiated after the

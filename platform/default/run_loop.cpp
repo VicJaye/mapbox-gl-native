@@ -1,11 +1,12 @@
 #include <mbgl/util/run_loop.hpp>
 #include <mbgl/util/async_task.hpp>
 #include <mbgl/util/uv.hpp>
+#include <mbgl/util/thread_local.hpp>
 
 namespace mbgl {
 namespace util {
 
-static uv::tls<RunLoop> current;
+static tls<RunLoop> current;
 
 RunLoop* RunLoop::Get() {
     return current.get();

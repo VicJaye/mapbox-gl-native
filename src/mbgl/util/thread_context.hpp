@@ -1,7 +1,7 @@
 #ifndef MBGL_UTIL_THREAD_CONTEXT
 #define MBGL_UTIL_THREAD_CONTEXT
 
-#include <mbgl/util/uv.hpp>
+#include <mbgl/util/thread_local.hpp>
 
 #include <cstdint>
 #include <string>
@@ -91,7 +91,7 @@ private:
     FileSource* fileSource = nullptr;
     GLObjectStore* glObjectStore = nullptr;
 
-    static uv::tls<ThreadContext> current;
+    static tls<ThreadContext> current;
 
     friend class MainThreadContextRegistrar;
     template <class Object> friend class Thread;
