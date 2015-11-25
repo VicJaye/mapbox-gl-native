@@ -11,12 +11,14 @@ class PlainShader;
 
 class DebugBucket : private util::noncopyable {
 public:
-    DebugBucket(TileID id, TileData::State);
+    DebugBucket(TileID id, TileData::State, time_t modified, time_t expires);
 
     void drawLines(PlainShader& shader);
     void drawPoints(PlainShader& shader);
 
     const TileData::State state;
+    const time_t modified;
+    const time_t expires;
 
 private:
     DebugFontBuffer fontBuffer;
