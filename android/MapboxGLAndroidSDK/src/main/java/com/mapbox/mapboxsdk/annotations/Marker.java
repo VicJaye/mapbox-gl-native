@@ -16,6 +16,7 @@ public final class Marker extends Annotation {
     private InfoWindow infoWindow = null;
     private boolean infoWindowShown = false;
     private int topOffsetPixels;
+    private int leftOffsetPixels;
 
     /**
      * Constructor
@@ -100,7 +101,7 @@ public final class Marker extends Annotation {
     }
 
     private void showInfoWindow(InfoWindow iw) {
-        iw.open(this, getPosition(), 0, topOffsetPixels);
+        iw.open(this, getPosition(), leftOffsetPixels, topOffsetPixels);
         infoWindowShown = true;
     }
 
